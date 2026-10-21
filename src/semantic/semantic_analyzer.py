@@ -34,24 +34,17 @@ class SemanticAnalyzer:
         self.initialize_builtins()
 
     def initialize_builtins(self) -> None:
-        # Math constants
-        self.symbol_table.define("pi", Symbol("pi", SemanticType.NUMBER, 0, 0))
-        self.symbol_table.define("e", Symbol("e", SemanticType.NUMBER, 0, 0))
-
-        # Basic math functions
-        for f in ["sqrt", "sin", "cos", "tan", "log", "abs", "dot", "norm"]:
+         self.symbol_table.define("pi", Symbol("pi", SemanticType.NUMBER, 0, 0))
+         self.symbol_table.define("e", Symbol("e", SemanticType.NUMBER, 0, 0))
+         for f in ["sqrt", "sin", "cos", "tan", "log", "abs", "dot", "norm"]:
             self.symbol_table.define(f, Symbol(f, SemanticType.FUNCTION, 0, 0))
-
-        # Built-in metric functions
-        for f in ["mae", "mse", "rmse", "r2"]:
+         for f in ["mae", "mse", "rmse", "r2"]:
             self.symbol_table.define(f, Symbol(f, SemanticType.FUNCTION, 0, 0))
-        # Built-in matrix functions
-        for f in ["transpose", "determinant", "det", "inverse"]:
+         for f in ["transpose", "determinant", "det", "inverse"]:
             self.symbol_table.define(f, Symbol(f, SemanticType.FUNCTION, 0, 0))
 
     def analyze(self, node: ASTNode) -> None:
         self.visit(node)
-        # Update variable count in features
         user_syms = [k for k in self.symbol_table.symbols if self.symbol_table.symbols[k].type != SemanticType.FUNCTION]
         self.features["variable_count"] = len(user_syms)
 
@@ -99,8 +92,6 @@ class SemanticAnalyzer:
 
         if len(node.equations) == 2 and len(all_vars) != 2:
             raise SemanticError(f"System of 2 equations must have exactly 2 variables, found {len(all_vars)} ({all_vars}).", node.line, node.column)
-
-        # Register variable symbols
         for v in all_vars:
             self.symbol_table.define(v, Symbol(v, SemanticType.NUMBER, node.line, node.column))
 
@@ -233,8 +224,6 @@ class SemanticAnalyzer:
         symbol = self.symbol_table.lookup(fname)
         if not symbol or symbol.type != SemanticType.FUNCTION:
             raise SemanticError(f"Function '{node.name}' is not defined.", node.line, node.column)
-
-        # ML Metrics
         if fname in ["mae", "mse", "rmse", "r2"]:
             self.features["has_metric"] = True
             self.features["operation_type"] = 3
@@ -257,8 +246,6 @@ class SemanticAnalyzer:
                     node.line, node.column
                 )
             return SemanticType.NUMBER, None
-
-        # Matrix functions
         if fname in ["transpose", "determinant", "det", "inverse"]:
             self.features["has_matrix"] = True
             self.features["matrix_dimensions"] = 2
@@ -291,7 +278,6 @@ class SemanticAnalyzer:
             arg_type, _ = self.visit(node.arguments[0])
             if arg_type != SemanticType.NUMBER:
                 raise SemanticError(f"Function '{node.name}' expects a numeric argument, got {arg_type.name}.", node.line, node.column)
-            # check constant value for sqrt domain
             if isinstance(node.arguments[0], UnaryOperationNode) and node.arguments[0].operator == "-":
                 raise SemanticError("Mathematical domain error: sqrt of negative number.", node.line, node.column)
             if isinstance(node.arguments[0], NumberNode) and node.arguments[0].value < 0:

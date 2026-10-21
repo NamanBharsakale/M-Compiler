@@ -75,7 +75,6 @@ class Parser:
 
         equations = []
         if self.match(TokenType.COLON):
-            # System of equations: collect until next keyword or EOF
             while not self.is_at_end() and self.peek().type not in [TokenType.SHOW, TokenType.SOLVE, TokenType.MATRIX]:
                 eq_str = self.parse_equation_line()
                 if eq_str:
@@ -83,7 +82,6 @@ class Parser:
                 else:
                     break
         else:
-            # Single equation on this line: collect tokens until end of statement / line
             eq_str = self.parse_equation_line()
             equations.append(eq_str)
 
@@ -93,13 +91,10 @@ class Parser:
         return SolveNode(equations, line, col)
 
     def parse_equation_line(self) -> str:
-        # Collect tokens making up an equation (e.g. 2 * x + 5 = 15)
-        # Ends when we hit SHOW, SOLVE, MATRIX, or EOF, or if we already parsed an equation and line number changes
         tokens_in_eq = []
         start_line = self.peek().line
 
         while not self.is_at_end() and self.peek().type not in [TokenType.SHOW, TokenType.SOLVE, TokenType.MATRIX]:
-            # If line changed and we already collected tokens that form an equation (contains '='), stop
             if tokens_in_eq and self.peek().line != start_line:
                 has_equals = any(t.type == TokenType.ASSIGN for t in tokens_in_eq)
                 if has_equals:
@@ -109,7 +104,6 @@ class Parser:
         if not tokens_in_eq:
             return ""
 
-        # Reconstruct equation string with proper spacing
         eq_str = " ".join(t.lexeme for t in tokens_in_eq)
         return eq_str
 
@@ -167,9 +161,8 @@ class Parser:
 
         if self.match(TokenType.IDENTIFIER):
             name_token = self.previous()
-            # Function call: name(...)
             if self.check(TokenType.LPAREN):
-                self.advance()  # consume '('
+                self.advance()
                 arguments = []
                 if not self.check(TokenType.RPAREN):
                     arguments.append(self.parse_expression())
@@ -177,10 +170,9 @@ class Parser:
                         arguments.append(self.parse_expression())
                 self.consume(TokenType.RPAREN, "Expected ')' after function arguments.")
                 return FunctionCallNode(name_token.lexeme, arguments, name_token.line, name_token.column)
-            
-            # Matrix element access: name[row][col]
+
             if self.check(TokenType.LBRACKET):
-                self.advance()  # consume '['
+                self.advance()
                 row_expr = self.parse_expression()
                 self.consume(TokenType.RBRACKET, "Expected ']' after row index.")
                 self.consume(TokenType.LBRACKET, "Expected second '[' for column index in matrix element access.")
@@ -197,7 +189,6 @@ class Parser:
 
         if self.match(TokenType.LBRACKET):
             bracket_token = self.previous()
-            # If the next token is LBRACKET, it is a matrix
             if self.check(TokenType.LBRACKET):
                 rows = []
                 rows.append(self.parse_vector_literal())
@@ -206,7 +197,6 @@ class Parser:
                 self.consume(TokenType.RBRACKET, "Expected ']' at end of matrix.")
                 return MatrixNode(rows, bracket_token.line, bracket_token.column)
             else:
-                # It is a vector (or empty matrix/vector)
                 elements = []
                 if not self.check(TokenType.RBRACKET):
                     elements.append(self.parse_expression())

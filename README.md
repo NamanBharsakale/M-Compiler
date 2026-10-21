@@ -1,141 +1,119 @@
-# ML Math Compiler
+# MathLang Compiler
 
-A minimal, simple, fully working **ML Math Compiler** built as a local web application and CLI tool.
+MathLang is a small compiler for mathematical programs. It can be used through a browser-based local interface or from the command line. The compiler parses MathLang source, checks it semantically, classifies the program, generates and optimizes an intermediate representation, generates Python code, and executes it.
 
-It demonstrates the complete 10-phase compiler design pipeline:
-```text
-Source Code
-     ↓
-1. Lexical Analysis
-     ↓
-2. Syntax Analysis / Parsing
-     ↓
-3. AST Generation
-     ↓
-4. Semantic Analysis
-     ↓
-5. Symbol Table
-     ↓
-6. Local ML Classification (Decision Tree on AST features)
-     ↓
-7. Intermediate Representation (IR)
-     ↓
-8. Optimization (Constant Folding & Propagation)
-     ↓
-9. Code Generation / Execution
-     ↓
-10. Final Result
-```
+## Features
 
----
+- Numeric variables, arithmetic expressions, and standard operator precedence
+- Scalar math functions: `sqrt`, `sin`, `cos`, `tan`, `log`, and `abs`
+- Vector literals and operations: `dot` and `norm`
+- Matrix literals and operations, including `transpose`, `det`/`determinant`, and `inverse`
+- `show` statements for displaying expression results
+- Linear equation solving with `solve`
+- Regression metrics: `mae`, `mse`, `rmse`, and `r2`
+- A local ML classifier that assigns a category and confidence to a program
+- Browser views for the result, compiler-phase output, and full workflow
 
-## 1. Supported Operations (Strict Scope)
+See [docs/LANGUAGE_SPECIFICATION.md](docs/LANGUAGE_SPECIFICATION.md) for language syntax and supported operations.
 
-1. **2D Matrix Operations**
-   * Creation: `matrix A = [[1,2],[3,4]]`
-   * Matrix addition (`+`), subtraction (`-`), multiplication (`*`)
-   * Built-in matrix functions: `transpose(A)`, `determinant(A)` or `det(A)`, `inverse(A)`
-   * Matrix element access: `A[0][0]`
-   * Strict dimension checking & row consistency validation
+## Compiler pipeline
 
-2. **Linear Equations**
-   * Single equation: `solve 2*x + 5 = 15` -> `x = 5`
-   * 2x2 System of linear equations:
-     ```text
-     solve:
-     2*x + y = 10
-     x - y = 2
-     ```
-     -> `x = 4`, `y = 2`
+The browser's Workflow view presents these ten stages:
 
-3. **ML Regression Metrics**
-   * Pure Python manual formulas (no sklearn metric functions used):
-     * `mae(actual, predicted)`
-     * `mse(actual, predicted)`
-     * `rmse(actual, predicted)`
-     * `r2(actual, predicted)`
+1. Source code
+2. Lexical analysis
+3. Syntax analysis
+4. AST
+5. Semantic analysis
+6. Symbol table
+7. ML classification
+8. Intermediate representation (IR)
+9. Optimization
+10. Execution
 
-4. **Local ML Classifier**
-   * Embedded `DecisionTreeClassifier` (via scikit-learn).
-   * Classifies problems (`MATRIX_OPERATION`, `LINEAR_EQUATION`, `REGRESSION_METRIC`) using features extracted from the AST (`has_matrix`, `has_equation`, `has_metric`, `matrix_dimensions`, `operation_type`, `variable_count`).
-   * No cloud APIs, no external network requests, zero API keys.
+Internally, the compiler generates Python from the optimized IR before execution. The web interface also provides phase tabs for tokens, AST, semantic analysis, symbols, ML classification, IR, optimized IR, and execution.
 
----
-
-## 2. Project Structure
+## Project structure
 
 ```text
-MLMathCompiler/
-│
-├── main.py                     # Web server & CLI runner with 10-phase terminal printing
-├── requirements.txt
-├── README.md
-│
-├── examples/
-│   ├── matrix.math             # 2D matrix multiplication example
-│   ├── linear.math             # Single linear equation example
-│   └── metrics.math            # ML regression metrics example
-│
+.
+├── main.py                 # Local web server and file-based CLI entry point
+├── requirements.txt        # Python dependencies
+├── SETUP.md                # Installation and run instructions
+├── docs/                   # Language and compiler phase documentation
+├── examples/               # Sample .math programs
 ├── src/
-│   ├── lexer/                  # Tokenizer & TokenType definitions
-│   ├── parser/                 # Recursive-descent parser & AST nodes
-│   ├── semantic/               # Type & dimension checking, Symbol table
-│   ├── ml/                     # Local DecisionTree classifier on AST features
-│   ├── ir/                     # 3-address code IR representation
-│   ├── optimizer/              # Constant folding & algebraic simplification
-│   ├── math_engine/            # Pure Python matrix, equation & metric engines
-│   │   ├── matrix.py           # Add, sub, mul, det, transpose, inverse
-│   │   ├── equations.py        # 1-var and 2-var linear equation solvers
-│   │   └── metrics.py          # MAE, MSE, RMSE, R² manual formulas
-│   ├── codegen/                # Python target code generator
-│   └── compiler/               # Central compiler orchestrator
-│
-├── web/
-│   ├── index.html              # Split-screen UI (Editor top, Output bottom)
-│   ├── style.css               # Clean modern dark theme
-│   └── app.js                  # Frontend logic, Phase explorer & Workflow view
-│
-└── tests/
-    └── test_ml_math_compiler.py
+│   ├── lexer/               # Tokenizer and token definitions
+│   ├── parser/              # Parser and AST node definitions
+│   ├── semantic/            # Semantic checks and symbol table
+│   ├── ml/                  # Local program classifier
+│   ├── ir/                  # Intermediate representation
+│   ├── optimizer/           # IR optimization
+│   ├── codegen/             # Python code generation
+│   ├── runtime/             # Math runtime helpers
+│   ├── math_engine/         # Equation, matrix, and metric operations
+│   └── compiler/            # Compiler orchestration
+└── web/
+    ├── index.html           # Browser interface structure
+    ├── style.css            # Interface styling
+    └── app.js               # Browser interaction and rendering
 ```
 
----
+## Setup
 
-## 3. Running the Project
+Requirements are Python 3.11 or newer and pip. From the project root, install dependencies:
 
-### A. Local Web Application (Horizontal Split-Screen)
+```bash
+python -m pip install -r requirements.txt
+```
 
-Run:
+Using a virtual environment is recommended. Platform-specific setup steps are in [SETUP.md](SETUP.md).
+
+## Run the web interface
+
+Start the server from the project root:
+
 ```bash
 python main.py
 ```
-Then open your browser at:
-```
-http://localhost:5000
-```
 
-Features in the browser:
-* **Top half**: Simple input editor with preset quick-loaders (`2D Matrix`, `Linear Eq`, `2x2 System`, `ML Metrics`) and buttons: `[Run]`, `[Clear]`, `[Workflow]`.
-* **Bottom half**: Clean output view showing:
-  * Final mathematical result
-  * Detected operation name & local ML classification + confidence
-  * Mathematical step explanation
-* **Workflow Button**: Shows the full compiler pipeline step-by-step with collapsible accordions.
-* **Phase Explorer**: Individual buttons `[Tokens]`, `[AST]`, `[Semantic]`, `[Symbols]`, `[ML]`, `[IR]`, `[Optimized IR]`, `[Execution]` to inspect each phase individually.
-* **Terminal output**: Every compilation logs all 10 stages in detail to the console.
+Then open [http://localhost:5000](http://localhost:5000) in a browser. Enter a program in the editor or select a preset, then choose **Run** to compile and execute it. **Workflow** displays the compiler stages; the output tabs let you inspect individual results. The server logs the pipeline in the terminal as well.
 
-### B. CLI Runner
+Stop the server with `Ctrl+C`. Port 5000 must be available.
 
-You can also run any source file directly in the terminal:
-```bash
-python main.py examples/matrix.math
-python main.py examples/linear.math
-python main.py examples/metrics.math
-```
+## Run a `.math` file
 
-### C. Running Tests
+Pass the path of a source file to `main.py` to compile and run it in the terminal:
 
 ```bash
-pytest
+python main.py examples/01_basic.math
+python main.py examples/05_vectors.math
+python main.py examples/06_matrices.math
 ```
-All 32 unit and integration tests pass.
+
+This file mode prints the compiler pipeline and final execution output. CLI phase flags are not implemented; use the browser interface to inspect individual phase outputs.
+
+## Examples
+
+The `examples/` directory includes programs demonstrating basic expressions, functions, precedence, errors, vectors, matrices, linear equations, and regression metrics. For example:
+
+```text
+x = 10
+y = 20
+z = x + y
+show z
+```
+
+Run it with:
+
+```bash
+python main.py examples/01_basic.math
+```
+
+## Tests
+
+If a test suite is included in your checkout, run it from the project root:
+
+```bash
+python -m pytest
+```
