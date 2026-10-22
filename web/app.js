@@ -135,9 +135,6 @@ function renderResultView(data) {
           <div class="val">${escapeHtml(data.ml_category)} (${data.ml_confidence}%)</div>
         </div>
       </div>
-
-      <div class="sec-title" style="margin-top: 10px;">MATHEMATICAL EXPLANATION</div>
-      <div class="explanation-box">${escapeHtml(data.explanation)}</div>
     </div>
   `;
 }

@@ -36,7 +36,7 @@ class PythonGenerator:
                 lines.append(f"{res} = {arg1!r}")
 
             elif op == "SOLVE_LINEAR":
-                lines.append(f"__sol, _ = solve_single_equation({self.format_val(arg1)})")
+                lines.append(f"__sol = solve_single_equation({self.format_val(arg1)})")
                 lines.append("for __k, __v in __sol.items():")
                 lines.append("    print(f'{__k} = {int(__v) if isinstance(__v, float) and __v.is_integer() else __v:g}')")
                 lines.append(f"{res} = __sol")
@@ -44,7 +44,7 @@ class PythonGenerator:
             elif op == "SOLVE_SYSTEM":
                 eq_list_str = "[" + ", ".join(self.format_val(a) for a in arg1) + "]"
                 lines.append(f"__eqs = {eq_list_str}")
-                lines.append(f"__sol, _ = solve_system_2x2(__eqs[0], __eqs[1])")
+                lines.append(f"__sol = solve_system_2x2(__eqs[0], __eqs[1])")
                 lines.append("for __k, __v in __sol.items():")
                 lines.append("    print(f'{__k} = {int(__v) if isinstance(__v, float) and __v.is_integer() else __v:g}')")
                 lines.append(f"{res} = __sol")

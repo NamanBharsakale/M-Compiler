@@ -106,9 +106,6 @@ class Compiler:
         generated_python = codegen.generate(optimized_ir)
         output = self.run(generated_python)
 
-        # Explanation
-        explanation = self.generate_math_explanation(analyzer, output)
-
         return {
             "source": source.strip(),
             "tokens": tokens_str,
@@ -123,7 +120,6 @@ class Compiler:
             "opt_ir": opt_ir_str,
             "code": generated_python,
             "execution": output.strip(),
-            "explanation": explanation,
             "operation": analyzer.operation_name
         }
 
@@ -229,28 +225,3 @@ class Compiler:
                     shape_str = f"{sym.shape[0]} elements"
             rows.append(f"{name:<12} {sym.type.name:<12} {shape_str:<12}")
         return "\n".join(rows)
-
-    def generate_math_explanation(self, analyzer: SemanticAnalyzer, output: str) -> str:
-        op = analyzer.operation_name
-        if "Multiplication" in op:
-            return (
-                "Matrix Multiplication (A x B):\n"
-                "* For each element C[i][j], compute dot product of row i of A and column j of B.\n"
-                "* C[i][j] = sum(A[i][k] * B[k][j])\n"
-                "* Inner dimensions match; verified mathematically."
-            )
-        elif "Linear Equation" in op:
-            return (
-                "Linear Equation Solution:\n"
-                "* Isolate variable terms to the LHS and constants to the RHS.\n"
-                "* Compute net coefficient 'a' and constant 'c'.\n"
-                "* Solution derived analytically: x = c / a."
-            )
-        elif "MAE" in op or "Metric" in op:
-            return (
-                "ML Metric Computation:\n"
-                "* Calculate prediction residuals: error = actual - predicted\n"
-                "* Apply metric formula deterministically without external black-box library\n"
-                "* Result verified against standard statistical formulation."
-            )
-        return f"{op} executed deterministically."

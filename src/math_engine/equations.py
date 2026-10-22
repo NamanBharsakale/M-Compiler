@@ -1,5 +1,5 @@
 import re
-from typing import Dict, Union, List, Tuple
+from typing import Dict, Union
 
 def parse_linear_side(expr_str: str) -> Dict[str, float]:
     """
@@ -39,10 +39,10 @@ def parse_linear_side(expr_str: str) -> Dict[str, float]:
         
     return coeffs
 
-def solve_single_equation(eq_str: str) -> Tuple[Dict[str, float], List[str]]:
+def solve_single_equation(eq_str: str) -> Dict[str, float]:
     """
     Solves a single linear equation e.g., '2*x + 5 = 15'
-    Returns (solution_dict, explanation_steps)
+    Returns a mapping from the variable name to its solution.
     """
     if '=' not in eq_str:
         raise ValueError("Equation must contain '='")
@@ -71,19 +71,14 @@ def solve_single_equation(eq_str: str) -> Tuple[Dict[str, float], List[str]]:
             
     val = total_const / total_coef
     
-    steps = [
-        eq_str.strip(),
-        f"{total_coef:g}*{var} = {total_const:g}" if total_coef != 1 else f"{var} = {total_const:g}",
-        f"{var} = {val:g}"
-    ]
-    return {var: val}, steps
+    return {var: val}
 
-def solve_system_2x2(eq1_str: str, eq2_str: str) -> Tuple[Dict[str, float], List[str]]:
+def solve_system_2x2(eq1_str: str, eq2_str: str) -> Dict[str, float]:
     """
     Solves a 2-equation linear system e.g.
     '2*x + y = 10'
     'x - y = 2'
-    Returns (solution_dict, explanation_steps)
+    Returns a mapping from each variable name to its solution.
     """
     c1_left = parse_linear_side(eq1_str.split('=')[0])
     c1_right = parse_linear_side(eq1_str.split('=')[1])
@@ -115,11 +110,4 @@ def solve_system_2x2(eq1_str: str, eq2_str: str) -> Tuple[Dict[str, float], List
     x_val = (c1 * b2 - c2 * b1) / det_sys
     y_val = (a1 * c2 - a2 * c1) / det_sys
     
-    steps = [
-        f"[1] {eq1_str.strip()}  =>  {a1:g}*{x_var} + {b1:g}*{y_var} = {c1:g}",
-        f"[2] {eq2_str.strip()}  =>  {a2:g}*{x_var} + {b2:g}*{y_var} = {c2:g}",
-        f"Determinant D = ({a1:g} * {b2:g}) - ({a2:g} * {b1:g}) = {det_sys:g}",
-        f"{x_var} = {x_val:g}",
-        f"{y_var} = {y_val:g}"
-    ]
-    return {x_var: x_val, y_var: y_val}, steps
+    return {x_var: x_val, y_var: y_val}

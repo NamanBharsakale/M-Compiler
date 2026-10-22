@@ -30,7 +30,6 @@ class SemanticAnalyzer:
             "variable_count": 0
         }
         self.operation_name: str = "Evaluation"
-        self.explanation: str = ""
         self.initialize_builtins()
 
     def initialize_builtins(self) -> None:
